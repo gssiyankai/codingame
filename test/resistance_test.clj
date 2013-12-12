@@ -10,7 +10,8 @@
 (defn test-morse [id]
   (let [output (read-file
                  (str "Test_" id "_output.txt"))
-        expected (first output)
+        expected (read-string
+                   (first output))
         input (read-file
                  (str "Test_" id "_input.txt"))
         morse (first input)
