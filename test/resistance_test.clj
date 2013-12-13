@@ -23,7 +23,7 @@
 (deftest test-dictionary-morse
   (is (= [".-"] (dictionary-morse ["A"])))
   (is (= ["......-...-..---"] (dictionary-morse ["HELLO"])))
-  (is (= ["--.-------..", "-----.-.-...-.--."] (dictionary-morse ["GOOD" "MORNING"])))
+  (is (= ["--.-------.." "-----.-.-...-.--."] (dictionary-morse ["GOOD" "MORNING"])))
 )
 
 (deftest test-correct-detection-of-a-letter
