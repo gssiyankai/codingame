@@ -17,12 +17,18 @@
 (def morse-messages
   (memoize
     (fn [morse dictionary]
-      (->> (map (fn [[word num]]
-                  (cond (= morse word) 1
-                        (.startsWith morse word) (* num (morse-messages (subs morse (count word)) dictionary))
-                        :else 0))
-                    dictionary)
-           (reduce +))))
+      (let [matching-word (fn [sentence word] (.startsWith morse word))
+            same-size (fn [word1 word2] (= (count word1) (count word2)))]
+        (->> (map (fn [[word num]]
+                    (if (matching-word morse word)
+                      (if (same-size morse word)
+                        1
+                        (* num (morse-messages (subs morse (count word)) dictionary)))
+                        0
+                      )
+                   )
+                  dictionary)
+             (reduce +)))))
 )
 
 (defn number-of-messages
