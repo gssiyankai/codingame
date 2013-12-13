@@ -20,6 +20,12 @@
     (is (= expected (number-of-messages morse dictionary))))
 )
 
+(deftest test-dictionary-morse
+  (is (= [".-"] (dictionary-morse ["A"])))
+  (is (= ["......-...-..---"] (dictionary-morse ["HELLO"])))
+  (is (= ["--.-------..", "-----.-.-...-.--."] (dictionary-morse ["GOOD" "MORNING"])))
+)
+
 (deftest test-correct-detection-of-a-letter
   (test-morse 1)
 )
