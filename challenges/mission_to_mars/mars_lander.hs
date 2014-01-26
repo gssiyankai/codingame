@@ -51,17 +51,21 @@ findLandingSite (p1:p2:ps)
 
 
 process :: LandingSite -> MarsLander -> Action
-process ls ml = Action rotation power
-    where rotation 
-            | (hs ml) > 40 = 35
-            | (hs ml) < -40 = -35
-            | (hs ml) > 20 = 5
-            | (hs ml) < -20 = -5
-            | (x ml) < (x1 ls) && (hs ml) < 20 = -40
-            | (x ml) > (x2 ls) && (hs ml) > -20 = 40
-            | otherwise        = 0
+process ls ml 
+    | (y ml) < (h ls) && (hs ml) < -10      = Action (-5) 4
+    | (y ml) < (h ls) && (hs ml) > 10       = Action 5 4
+    | (y ml) < (h ls)                       = Action 0 4
+    | (hs ml) > 40                          = Action 40 4
+    | (hs ml) < -40                         = Action (-40) 4
+    | otherwise                             = Action rotation power
+    where rotation
+            | (x ml) < (x1 ls + 80) = -20
+            | (x ml) > (x2 ls - 80) = 20
+            | (hs ml) < -10         = -25
+            | (hs ml) > 10          = 25
+            | otherwise             = 0
           power 
-            | (vs ml) <= -40 = 4
+            | (vs ml) <= -30  = 4
             | (vs ml) > 10   = 2
             | otherwise      = 3
 
@@ -74,6 +78,7 @@ loop ls = do
     let action = process ls ml
     
     -- hPutStrLn stderr "Debug messages..."
+    hPutStrLn stderr $ show (h ls) ++ " " ++ show (y ml)
     
     -- Write action to standard output
     putStrLn $ show (rotation action) ++ " " ++ show (power action)
