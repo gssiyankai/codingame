@@ -12,13 +12,26 @@ data Position = Position
 
 data MarsLander = MarsLander
     {
-        x :: Int,
+        x  :: Int,
         y :: Int,
         hs :: Int,
         vs :: Int,
         f :: Int,
         r :: Int,
         p :: Int
+    }
+    
+data LandingSite = LandingSite
+    {
+        x1 :: Int,
+        x2 :: Int,
+        h  :: Int
+    }
+    
+data Action = Action
+    {
+        rotation :: Int,
+        power :: Int
     }
 
 main :: IO ()
@@ -29,29 +42,33 @@ main = do
     n <- read <$> getLine
     positions <- replicateM n ((\ (x:y:_) -> Position x y) . map read . words <$> getLine)
     
-    loop positions
+    loop $ findLandingSite positions
 
-rotation :: MarsLander -> Int
-rotation _ = 0
+findLandingSite :: [Position] -> LandingSite
+findLandingSite (p1:p2:ps) 
+    | py p1 == py p2  = LandingSite (px p1) (px p2) (py p1)
+    | otherwise     = findLandingSite (p2:ps)
 
-power :: MarsLander -> Int
-power ml
-    | abs (vs ml) >= 40 = 4
-    | otherwise = 0
-    
 
-loop :: [Position] -> IO ()
-loop positions = do
+process :: LandingSite -> MarsLander -> Action
+process ls ml = Action rotation power
+    where rotation = 0
+          power 
+            | abs (vs ml) >= 40 = 4
+            | otherwise = 0
+
+loop :: LandingSite -> IO ()
+loop ls = do
     -- Read information from standard input
-    marsLander <- (\ (x:y:hs:vs:f:r:p:_) -> MarsLander x y hs vs f r p) . map read .words <$> getLine
+    ml <- (\ (x:y:hs:vs:f:r:p:_) -> MarsLander x y hs vs f r p) . map read .words <$> getLine
     
     -- Compute logic here
-    
+    let action = process ls ml
     
     -- hPutStrLn stderr "Debug messages..."
     
     -- Write action to standard output
-    putStrLn $ show (rotation marsLander) ++ " " ++ show (power marsLander)
+    putStrLn $ show (rotation action) ++ " " ++ show (power action)
     
-    loop positions
+    loop ls
     
