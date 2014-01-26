@@ -52,10 +52,18 @@ findLandingSite (p1:p2:ps)
 
 process :: LandingSite -> MarsLander -> Action
 process ls ml = Action rotation power
-    where rotation = 0
+    where rotation 
+            | (hs ml) > 40 = 35
+            | (hs ml) < -40 = -35
+            | (hs ml) > 20 = 5
+            | (hs ml) < -20 = -5
+            | (x ml) < (x1 ls) && (hs ml) < 20 = -40
+            | (x ml) > (x2 ls) && (hs ml) > -20 = 40
+            | otherwise        = 0
           power 
-            | abs (vs ml) >= 40 = 4
-            | otherwise = 0
+            | (vs ml) <= -40 = 4
+            | (vs ml) > 10   = 2
+            | otherwise      = 3
 
 loop :: LandingSite -> IO ()
 loop ls = do
