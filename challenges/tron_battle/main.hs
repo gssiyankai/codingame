@@ -43,7 +43,7 @@ loop previous_game_state n p = do
     -- Read information from standard input
     players_positions <- replicateM n ((\(x0:y0:x1:y1:_) -> (x1,y1)) . map read . words <$> getLine)
     
-    let game_state = map (\(current_position,previous_positions) -> current_position:previous_positions)
+    let game_state = map (\(current_position,previous_positions) -> if current_position==(-1,-1) then [] else current_position:previous_positions)
                    $ zip players_positions previous_game_state
         current_position =  players_positions !! p;
     
