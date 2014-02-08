@@ -17,11 +17,11 @@ test1 = TestCase $ do
 
 test2 = TestCase $ do
 	assertEqual 
-  		"Don't move out of limits" ["UP", "DOWN", "LEFT", "RIGHT"] (validMoves moves (1, 1) [])
+  		"Don't move out of limits" ["UP", "DOWN", "LEFT", "RIGHT"] (validMoves moves (1, 1) [[]])
 	assertEqual 
-  		"Don't move out of limits" ["DOWN", "RIGHT"] (validMoves moves (0, 0) [])
+  		"Don't move out of limits" ["DOWN", "RIGHT"] (validMoves moves (0, 0) [[]])
 	assertEqual 
-  		"Don't move on previous position" ["RIGHT"] (validMoves moves (0, 0) [(0,1)])
+  		"Don't move on previous position" ["RIGHT"] (validMoves moves (0, 0) [[(0,1)]])
 
 main = runTestTT $ TestList
 			[
