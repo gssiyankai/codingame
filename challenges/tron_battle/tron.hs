@@ -25,3 +25,20 @@ validMoves moves p gs = map (\(move, _) -> move)
 		validY y = y>=0 && y<20
 		unoccupiedPosition p = null $ dropWhile (\ps -> not (p `elem` ps)) gs
 
+bestMove :: [Move] -> Position -> GameState -> Move
+bestMove [m] _ _ = m
+bestMove moves p gs = maximumMoveScore
+			$ map (\(move, next_p) -> (move, moveScore next_p gs))
+			$ map (\move -> (move, nextPosition p move)) moves
+	where
+		maximumMoveScore [(m1,s1)] = m1
+		maximumMoveScore [(m1,s1),(m2,s2)] = if(s1>=s2) then m1 else m2
+		maximumMoveScore ((m1,s1):(m2,s2):mss) = if(s1>=s2) then maximumMoveScore ((m1,s1):mss)
+								    else maximumMoveScore ((m2,s2):mss)
+		maximum' [] = 0
+		maximum' l = maximum l
+		moveScore p gs = moveScore' p gs 0
+		moveScore' p gs 10 = 0
+		moveScore' p gs i = 1 + (maximum' $ map (\(next_p, _) -> moveScore' next_p ([p]:gs) (i+1))
+					$ filter (\(next_p, ms) -> not (null ms))
+					$ map (\move -> (nextPosition p move, validMoves moves (nextPosition p move) ([p]:gs))) moves)

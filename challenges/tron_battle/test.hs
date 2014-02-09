@@ -23,9 +23,18 @@ test2 = TestCase $ do
 	assertEqual 
   		"Don't move on previous position" ["RIGHT"] (validMoves moves (0, 0) [[(0,1)]])
 
+test3 = TestCase $ do
+-- O O . |
+-- . X . |
+-- | | | |
+	assertEqual 
+  		"Don't go to dead ends" "RIGHT" (bestMove ["LEFT", "RIGHT"] (1, 1) [[(1,1),(0,1),(0,0)],[(3,0),(3,1),(0,2),(1,2),(2,2),(3,2)]])
+	
+
 main = runTestTT $ TestList
 			[
 				test0,
 				test1,
-				test2
+				test2,
+				test3
 			]
