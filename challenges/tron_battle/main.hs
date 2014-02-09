@@ -39,11 +39,15 @@ bestMove moves p gs = maximumMoveScore
 								    else maximumMoveScore ((m2,s2):mss)
 		maximum' [] = 0
 		maximum' l = maximum l
-		moveScore p gs = moveScore' p gs 0
-		moveScore' p gs 10 = 0
-		moveScore' p gs i = 1 + (maximum' $ map (\(next_p, _) -> moveScore' next_p ([p]:gs) (i+1))
-					$ filter (\(next_p, ms) -> not (null ms))
-					$ map (\move -> (nextPosition p move, validMoves moves (nextPosition p move) ([p]:gs))) moves)
+		moveScore p gs = moveScore' p gs 0 []
+		moveScore' _ _ 7 _ = 0
+		moveScore' p gs i ps = 1 + (maximum' $ map (\next_p -> moveScore' next_p ((p:ps):gs) (i+1) (next_valid_moves++ps))
+							next_valid_moves)
+			where next_valid_moves = map (\(next_p,_) -> next_p)
+						$ filter (\(next_p, ms) -> not (null ms))
+						$ map (\next_p -> (next_p, validMoves moves next_p ((p:ps):gs)))
+						$ filter (\(next_p) -> not (next_p `elem` ps))
+						$ map (\move -> nextPosition p move) moves
 
 main :: IO ()
 main = do
