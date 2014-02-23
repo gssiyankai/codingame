@@ -4,8 +4,6 @@ import Data.List
 
 max_x = 40
 max_y = 18
-
-moves :: [String]
 moves = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
 main :: IO ()
@@ -40,17 +38,18 @@ isThorOutOfAllGiantsRange :: [Int] -> [[Int]] -> Bool
 isThorOutOfAllGiantsRange thor_position giants_positions = and $ map (\giant_position -> isThorOutOfGiantRange thor_position giant_position) giants_positions
 
 isThorPositionInBounds :: [Int] -> Bool
-isThorPositionInBounds (tx:ty:_) = tx>=0 && tx<max_y && ty>=0 && ty<max_y
+isThorPositionInBounds (tx:ty:_) = tx>=0 && tx<max_x && ty>=0 && ty<max_y
 
 computeMove :: [Int] -> [[Int]] -> String
 computeMove thor_position@(tx:ty:_) giants_positions 
     | null possible_moves = ""
     | otherwise           = head possible_moves
-    where possible_moves = map fst 
-                            -- $ map (\(move,next_thor_position) -> (move, distance [max_x `div` 2, max_y `div` 2] next_thor_position))
-                            $ filter (\(_,next_thor_position) -> isThorOutOfAllGiantsRange next_thor_position giants_positions)
-                            $ filter (\(_,next_thor_position) -> isThorPositionInBounds next_thor_position)
-                            $ map (\move -> (move, computeNextThorPosition thor_position move)) moves 
+    where possible_moves = map snd 
+                            $ sort
+                            $ map (\(next_thor_position,move) -> (distance [max_x `div` 2, max_y `div` 2] next_thor_position, move))
+                            $ filter (\(next_thor_position,_) -> isThorOutOfAllGiantsRange next_thor_position giants_positions)
+                            $ filter (\(next_thor_position,_) -> isThorPositionInBounds next_thor_position)
+                            $ map (\move -> (computeNextThorPosition thor_position move, move)) moves 
 
 computeAction :: [Int] -> Int -> [[Int]] -> String
 computeAction thor_position strikes giants_positions
