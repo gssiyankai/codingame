@@ -7,20 +7,9 @@ main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering -- DO NOT REMOVE
     -- Read init information from standard input, if any
-    initial_line <- getLine
-    let thor_position = (map read (words initial_line))
+    thor_position <- do line <- getLine; return (map read (words line))
     
-    line <- getLine
-    let strikes = (words line) !! 0
-        nb_giants = (words line) !! 1
-     
-    lines <- replicateM (read nb_giants) getLine
-    let giants_positions = map (\line -> map (\coord -> read coord) line)
-                            $ map words lines
-    hPutStrLn stderr strikes
-    hPutStrLn stderr $ show giants_positions
-        
-    loop thor_position (read strikes) giants_positions
+    loop thor_position
 
 
 nearestGiant :: [Int] -> [[Int]] -> [Int]
@@ -93,28 +82,27 @@ computeNextThorPosition (tx:ty:_) move = [tx+delta_x,ty+delta_y]
                   | otherwise           = 0
     
 
-loop :: [Int] -> Int -> [[Int]] -> IO ()
-loop thor_position strikes giants_positions = do
+loop :: [Int] -> IO ()
+loop thor_position = do
     -- Read information from standard input
+    line <- getLine
+    let strikes = (words line) !! 0
+        nb_giants = (words line) !! 1
+     
+    lines <- replicateM (read nb_giants) getLine
+    let giants_positions = map (\line -> map (\coord -> read coord) line)
+                            $ map words lines
+    hPutStrLn stderr strikes
+    hPutStrLn stderr $ show giants_positions
+    
 
     -- Compute logic here
-    let action = computeAction thor_position strikes giants_positions
+    let action = computeAction thor_position (read strikes) giants_positions
         next_thor_position = computeNextThorPosition thor_position action
     
     -- hPutStrLn stderr "Debug messages..."
 
     -- Write action to standard output
     putStrLn action
-    
-    
-    line <- getLine
-    let strikes = (words line) !! 0
-        nb_giants = (words line) !! 1
-     
-    lines <- replicateM (read nb_giants) getLine
-    let giants_positions = map (\line -> map (\coord -> read coord :: Int) line)
-                            $ map words lines
-    hPutStrLn stderr strikes
-    hPutStrLn stderr $ show giants_positions
         
-    loop next_thor_position (read strikes) giants_positions
+    loop next_thor_position
