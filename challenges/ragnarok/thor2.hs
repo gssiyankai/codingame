@@ -43,28 +43,48 @@ nearestGiant thor_position@(tx:ty:_) giants_positions = head (sortBy sortGiantsB
 
 isGiantInStrikeRange :: [Int] -> [Int] -> Bool
 isGiantInStrikeRange (tx:ty:_) (gx:gy:_)
-    | abs (tx - gx) > 9 = False
-    | abs (ty - gy) > 9 = False
+    | abs (tx - gx) > 5 = False
+    | abs (ty - gy) > 5 = False
     | otherwise         = True
     
 areAllGiansInStrikeRange :: [Int] -> [[Int]] -> Bool
 areAllGiansInStrikeRange thor_position giants_positions = and $ map (\giant_position -> isGiantInStrikeRange thor_position giant_position) giants_positions
 
 computeMove :: [Int] -> [[Int]] -> String
-computeMove thor_position giants_positions = "W"
+computeMove thor_position@(tx:ty:_) giants_positions = move
+    where move = vertical_move ++ horizontal_move
+          vertical_move | delta_y < 0 = "S"
+                        | delta_y > 0 = "N"
+                        | otherwise   = ""
+          delta_y = ngy - ty
+          horizontal_move | delta_x < 0 = "E"
+                          | delta_x > 0 = "W"
+                          | otherwise   = ""
+          delta_x = ngx - tx
+          nearest_giant = nearestGiant thor_position giants_positions
+          ngx = nearest_giant !! 0
+          ngy = nearest_giant !! 1
     
 computeAction :: [Int] -> Int -> [[Int]] -> String
 computeAction thor_position strikes giants_positions
-    | shouldMove = computeMove thor_position giants_positions
+    | shouldMove = move
     | shouldStrike = "STRIKE"
     | otherwise    = "WAIT"
-    where shouldMove = hasEnoughStrikes && cannotStrikeAllGiants 
-          hasEnoughStrikes = strikes <= length giants_positions
+    where shouldMove = hasNotEnoughStrikes && cannotStrikeAllGiants && isThorNextPositionInBounds
+          hasNotEnoughStrikes = strikes <= length giants_positions
+          move = computeMove thor_position giants_positions
+          next_thor_position = computeNextThorPosition thor_position move
+          isThorNextPositionInBounds
+            | next_thor_position !! 0 >= 0 && next_thor_position !! 0 < 40 && 
+              next_thor_position !! 1 >= 0 && next_thor_position !! 1 < 100    = True
+            | otherwise                                                        = False
           cannotStrikeAllGiants = not $ areAllGiansInStrikeRange thor_position giants_positions
           shouldStrike = isGiantInStrikeRange thor_position (nearestGiant thor_position giants_positions)
 
 computeNextThorPosition :: [Int] -> String -> [Int]
-computeNextThorPosition (lx:ly:tx:ty:_) move = [lx,ly,tx+delta_x,ty+delta_y]
+computeNextThorPosition positions "STRIKE" = positions 
+computeNextThorPosition positions "WAIT" = positions
+computeNextThorPosition (tx:ty:_) move = [tx+delta_x,ty+delta_y]
     where delta_y | isPrefixOf "S" move = 1
                   | isPrefixOf "N" move = -1
                   | otherwise           = 0
@@ -85,6 +105,7 @@ loop thor_position strikes giants_positions = do
 
     -- Write action to standard output
     putStrLn action
+    
     
     line <- getLine
     let strikes = (words line) !! 0
