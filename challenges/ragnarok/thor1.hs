@@ -1,7 +1,4 @@
-import Control.Applicative
-import Control.Monad
 import System.IO
-import Data.List
 
 main :: IO ()
 main = do
@@ -10,34 +7,30 @@ main = do
     positions <- getLine
     loop (map read (words positions))
 
-computeMove :: [Integer] -> String
-computeMove (lx:ly:tx:ty:_)  = vertical_move ++ horizontal_move
-    where vertical_move | delta_y > 0 = "S"
+computeMove :: [Int] -> (String, [Int])
+computeMove (lx:ly:tx:ty:_)  = (move, next_positions)
+    where move = vertical_move ++ horizontal_move
+          vertical_move | delta_y > 0 = "S"
                         | delta_y < 0 = "N"
                         | otherwise   = ""
-          delta_y = ly - ty
           horizontal_move | delta_x > 0 = "E"
                           | delta_x < 0 = "W"
                           | otherwise   = ""
-          delta_x = lx - tx
-          
-computeNextPositions :: [Integer] -> String -> [Integer]
-computeNextPositions (lx:ly:tx:ty:_) move = [lx,ly,tx+delta_x,ty+delta_y]
-    where delta_y | isPrefixOf "S" move = 1
-                  | isPrefixOf "N" move = -1
-                  | otherwise           = 0
-          delta_x | isSuffixOf "E" move = 1
-                  | isSuffixOf "W" move = -1
-                  | otherwise           = 0
+          delta_y | ly - ty > 0 = 1
+                  | ly - ty < 0 = -1
+                  | otherwise   = 0
+          delta_x | lx - tx > 0 = 1
+                  | lx - tx < 0 = -1
+                  | otherwise   = 0
+          next_positions = [lx,ly,tx+delta_x,ty+delta_y]
 
-loop :: [Integer] -> IO ()
+loop :: [Int] -> IO ()
 loop positions = do
     -- Read information from standard input
     power <- getLine
     
     -- Compute logic here
-    let move = computeMove positions
-        next_positions = computeNextPositions positions move
+    let (move, next_positions) = computeMove positions
     
     -- hPutStrLn stderr "Debug messages..."
     hPutStrLn stderr $ show positions
