@@ -32,7 +32,7 @@ areAllGiantsInStrikeRange :: [Int] -> [[Int]] -> Bool
 areAllGiantsInStrikeRange thor_position giants_positions = and $ map (\giant_position -> isGiantInStrikeRange thor_position giant_position) giants_positions
 
 isThorOutOfGiantRange :: [Int] -> [Int] -> Bool
-isThorOutOfGiantRange (tx:ty:_) (gx:gy:_) = abs(tx-gx) > 1 || abs(ty-gy)>1
+isThorOutOfGiantRange (tx:ty:_) (gx:gy:_) = abs(tx-gx)>1 || abs(ty-gy)>1
 
 isThorOutOfAllGiantsRange :: [Int] -> [[Int]] -> Bool
 isThorOutOfAllGiantsRange thor_position giants_positions = and $ map (\giant_position -> isThorOutOfGiantRange thor_position giant_position) giants_positions
