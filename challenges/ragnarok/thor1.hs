@@ -4,8 +4,8 @@ main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering -- DO NOT REMOVE
     -- Read init information from standard input, if any
-    positions <- getLine
-    loop (map read (words positions))
+    positions <- do line <- getLine; return (map read (words line))
+    loop positions
 
 computeMove :: [Int] -> (String, [Int])
 computeMove (lx:ly:tx:ty:_)  = (move, next_positions)
