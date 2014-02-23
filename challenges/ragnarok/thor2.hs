@@ -1,4 +1,3 @@
-import Control.Applicative
 import Control.Monad
 import System.IO
 import Data.List
