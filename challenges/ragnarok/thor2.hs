@@ -62,10 +62,8 @@ computeAction thor_position strikes giants_positions
           hasNotEnoughStrikes = strikes <= length giants_positions
           move = computeMove thor_position giants_positions
           next_thor_position = computeNextThorPosition thor_position move
-          isThorNextPositionInBounds
-            | next_thor_position !! 0 >= 0 && next_thor_position !! 0 < 40 && 
-              next_thor_position !! 1 >= 0 && next_thor_position !! 1 < 100    = True
-            | otherwise                                                        = False
+          isThorNextPositionInBounds = next_thor_position !! 0 >= 0 && next_thor_position !! 0 < 40 && 
+                                       next_thor_position !! 1 >= 0 && next_thor_position !! 1 < 100
           cannotStrikeAllGiants = not $ areAllGiansInStrikeRange thor_position giants_positions
           shouldStrike = isGiantInStrikeRange thor_position (nearestGiant thor_position giants_positions)
 
