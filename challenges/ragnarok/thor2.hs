@@ -2,6 +2,9 @@ import Control.Monad
 import System.IO
 import Data.List
 
+moves :: [String]
+moves = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering -- DO NOT REMOVE
@@ -33,33 +36,29 @@ isThorOutOfGiantRange (tx:ty:_) (gx:gy:_) = abs(tx-gx) > 1 || abs(ty-gy)>1
 isThorOutOfAllGiantsRange :: [Int] -> [[Int]] -> Bool
 isThorOutOfAllGiantsRange thor_position giants_positions = and $ map (\giant_position -> isThorOutOfGiantRange thor_position giant_position) giants_positions
 
+isThorPositionInBounds :: [Int] -> Bool
+isThorPositionInBounds (tx:ty:_) = tx>=0 && tx<40 && ty>=0 && ty<18
+
 computeMove :: [Int] -> [[Int]] -> String
-computeMove thor_position@(tx:ty:_) giants_positions = move 
-    where move = vertical_move ++ horizontal_move
-          vertical_move | ty+1<18 && delta_y < 0 = "S"
-                        | ty-1>=0 && delta_y > 0 = "N"
-                        | otherwise   = ""
-          delta_y = ngy-ty
-          horizontal_move | tx+1<40 && delta_x < 0 = "E"
-                          | tx-1>=0 && delta_x > 0 = "W"
-                          | otherwise   = ""
-          delta_x = ngx-tx
-          [ngx, ngy] = nearestGiant thor_position giants_positions
-    
+computeMove thor_position@(tx:ty:_) giants_positions 
+    | null possible_moves = ""
+    | otherwise           = head possible_moves
+    where possible_moves = map fst 
+                            $ filter (\(_,next_thor_position) -> isThorOutOfAllGiantsRange next_thor_position giants_positions)
+                            $ filter (\(_,next_thor_position) -> isThorPositionInBounds next_thor_position)
+                            $ map (\move -> (move, computeNextThorPosition thor_position move)) moves 
+
 computeAction :: [Int] -> Int -> [[Int]] -> String
 computeAction thor_position strikes giants_positions
-    | shouldMove && isMoveValid = move
+    | shouldMove && canMove = move
     | shouldStrike = "STRIKE"
     | otherwise    = "WAIT"
-    where shouldMove = hasNotEnoughStrikes && cannotStrikeAllGiants
+    where shouldMove = (hasNotEnoughStrikes || isThorPositionInGiantsRange) && cannotStrikeAllGiants
           hasNotEnoughStrikes = strikes <= length giants_positions
           cannotStrikeAllGiants = not $ areAllGiantsInStrikeRange thor_position giants_positions
-          next_thor_position = computeNextThorPosition thor_position move
-          isThorNextPositionInBounds = next_thor_position !! 0 >= 0 && next_thor_position !! 0 < 40 && 
-                                       next_thor_position !! 1 >= 0 && next_thor_position !! 1 < 18
-          isThorNextPositionOutOfGiantsRange = isThorOutOfAllGiantsRange next_thor_position giants_positions
-          isMoveValid = isThorNextPositionInBounds && isThorNextPositionOutOfGiantsRange
+          isThorPositionInGiantsRange = not $ isThorOutOfAllGiantsRange thor_position giants_positions
           move = computeMove thor_position giants_positions
+          canMove = not $ null move
           shouldStrike = isGiantInStrikeRange thor_position (nearestGiant thor_position giants_positions)
 
 computeNextThorPosition :: [Int] -> String -> [Int]
@@ -72,7 +71,6 @@ computeNextThorPosition (tx:ty:_) move = [tx+delta_x,ty+delta_y]
           delta_x | isSuffixOf "E" move = 1
                   | isSuffixOf "W" move = -1
                   | otherwise           = 0
-    
 
 loop :: [Int] -> IO ()
 loop thor_position = do
