@@ -86,18 +86,17 @@ loop :: [Int] -> IO ()
 loop thor_position = do
     -- Read information from standard input
     line <- getLine
-    let strikes = (words line) !! 0
-        nb_giants = (words line) !! 1
+    let [strikes, nb_giants] = map read (words line)
      
-    lines <- replicateM (read nb_giants) getLine
+    lines <- replicateM nb_giants getLine
     let giants_positions = map (\line -> map (\coord -> read coord) line)
                             $ map words lines
-    hPutStrLn stderr strikes
+    hPutStrLn stderr $ show strikes
     hPutStrLn stderr $ show giants_positions
     
 
     -- Compute logic here
-    let action = computeAction thor_position (read strikes) giants_positions
+    let action = computeAction thor_position strikes giants_positions
         next_thor_position = computeNextThorPosition thor_position action
     
     -- hPutStrLn stderr "Debug messages..."
