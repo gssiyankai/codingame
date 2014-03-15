@@ -7,6 +7,7 @@ class Player {
         int y;
     }
 
+    static final int RADIUS = 100*100;
     static Scanner scanner = new Scanner(System.in);
     static int numberOfPlayers;
     static int playerId;
@@ -15,7 +16,14 @@ class Player {
     static Position[] zonePositions;
     static int[] zoneControllers;
     static Position[][] dronePositions;
-    static int[] droneMoves;
+    static int[] droneZoneTargets;
+    static int[][] dronesInZone;
+
+    static int distance2(Position a, Position b) {
+        int delta_x = a.x - b.x;
+        int delta_y = a.y - b.y;
+        return delta_x*delta_x + delta_y*delta_y;
+    }
 
     static void initialize() {
         numberOfPlayers = scanner.nextInt();
@@ -36,7 +44,8 @@ class Player {
                 dronePositions[i][j] = new Position();
             }
         }
-        droneMoves = new int[numberOfDrones];
+        droneZoneTargets = new int[numberOfDrones];
+        dronesInZone = new int[numberOfZones][numberOfPlayers];
     }
 
     static void update() {
@@ -49,6 +58,19 @@ class Player {
                 dronePositions[i][j].y = scanner.nextInt();
             }
         }
+        for(int i=0; i<numberOfZones; ++i) {
+            Position zone = zonePositions[i];
+            for(int j=0; j<numberOfPlayers; ++j) {
+                int drones = 0;
+                for(int k=0; k<numberOfDrones; ++k) {
+                    Position drone = dronePositions[j][k];
+                    if(distance2(drone, zone)<=RADIUS) {
+                        ++drones;
+                    }
+                }
+                dronesInZone[i][j] = drones;
+            }
+        }
     }
 
     static int findClosestZone(Position drone) {
@@ -56,9 +78,7 @@ class Player {
         int min = Integer.MAX_VALUE;
         for(int i=0; i<numberOfZones; ++i) {
             Position zonePosition = zonePositions[i];
-            int delta_x = drone.x - zonePosition.x;
-            int delta_y = drone.y - zonePosition.y;
-            int distance = delta_x*delta_x + delta_y*delta_y;
+            int distance = distance2(drone, zonePosition);
             if(distance<min) {
                 zone = i;
                 min = distance;
@@ -72,13 +92,7 @@ class Player {
 
     static void compute() {
         for(int i=0; i<numberOfDrones; ++i) {
-            droneMoves[i] = findClosestZone(dronePositions[playerId][i]);
-        }
-        for(int i=0; i<numberOfDrones; ++i) {
-            int droneMove = droneMoves[i];
-            if(dronePositions[playerId][i]==zonePositions[droneMove] && zoneControllers[droneMove]!=playerId) {
-                
-            }
+            droneZoneTargets[i] = findClosestZone(dronePositions[playerId][i]);
         }
     }
 
@@ -94,11 +108,11 @@ class Player {
             compute();
 
             // Write action to standard output
-            for(int droneMove : droneMoves) {
-                Position position = zonePositions[droneMove];
-                System.out.print(position.x);
+            for(int target : droneZoneTargets) {
+                Position zone = zonePositions[target];
+                System.out.print(zone.x);
                 System.out.print(" ");
-                System.out.println(position.y);
+                System.out.println(zone.y);
             }
         }
     }
