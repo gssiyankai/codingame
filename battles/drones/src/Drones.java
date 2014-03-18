@@ -1,188 +1,199 @@
 import java.util.*;
-class Player {
 
-    static final class Position {
+final class Player {
+
+    static final Scanner SCANNER = new Scanner(System.in);
+    static final int RADIUS2 = 100 * 100;
+
+    static class Position {
         int x;
         int y;
     }
 
-    static final class ZoneComparator implements Comparator<Integer> {
-
-        final int player;
-        final int drone;
-
-        ZoneComparator(int player, int drone) {
-            this.player = player;
-            this.drone = drone;
-        }
-
-        @Override
-        public int compare(Integer i1, Integer i2) {
-            int[] distances = droneZoneDistances[player][drone];
-            int distance1 = distances[i1];
-            int distance2 = distances[i2];
-            int weight1 = distance1;
-            int weight2 = distance2;
-
-            if(zoneControllers[i1]==-1 && numberOfDifferentEnnemiesInZone(i1)>1) {
-                weight1 += distance2;
-            }
-            if(zoneControllers[i2]==-1 && numberOfDifferentEnnemiesInZone(i2)>1) {
-                weight2 += distance1;
-            }
-            if(zoneControllers[i1]!=playerId) {
-                weight1 += (maxEnnemiesPerPlayer(i1)-dronesInZone[i1][player]) * distance1;
-            }
-            if(zoneControllers[i2]!=playerId) {
-                weight2 += (maxEnnemiesPerPlayer(i2)-dronesInZone[i1][player]) * distance2;
-            }
-            if(zoneControllers[i1]==playerId && maxEnnemiesPerPlayer(i1)+1<=dronesInZone[i1][player]) {
-                weight1 += (dronesInZone[i1][player]-(maxEnnemiesPerPlayer(i1)+1)) * distance2;
-            }
-            if(zoneControllers[i2]==playerId && maxEnnemiesPerPlayer(i2)+1<=dronesInZone[i2][player]) {
-                weight2 += (dronesInZone[i2][player]-(maxEnnemiesPerPlayer(i2)+1)) * distance1;
-            }
-
-            return Integer.compare(weight1, weight2);
-        }
-
-        int numberOfDifferentEnnemiesInZone(int zone) {
-            int n = 0;
-            for(int i=0; i<numberOfPlayers; ++i) {
-                if(i!=player) {
-                    n += dronesInZone[zone][i];
-                }
-            }
-            return n;
-        }
-
-        int maxEnnemiesPerPlayer(int zone) {
-            int max=0;
-            for(int i=0; i<numberOfPlayers; ++i) {
-                if(i!=player) {
-                    int n = dronesInZone[zone][i];
-                    if(n>max) {
-                        max = n;
-                    }
-                }
-            }
-            return max;
-        }
-
+    static class Zone {
+        Position position;
+        int controller;
     }
 
-    static final class MyThread extends Thread {
+    static class Drone {
+        Position position;
+
+        boolean isInZone(Zone zone) {
+            return distance2(position, zone.position) <= RADIUS2;
+        }
+    }
+
+    static class AiPlayer {
+        int id;
+        Drone[] drones;
+    }
+
+    static int P;
+    static int I;
+    static int D;
+    static int Z;
+    static Zone[] zones;
+    static AiPlayer[] players;
+    static Strategy strategy;
+    static int[] targets;
+
+    static class Strategy extends Thread {
+
         @Override
         public void run() {
-            while(true) {
-                for(int i=0; i<numberOfDrones; ++i) {
-                    Arrays.sort(droneSortedZones[playerId][i], zoneComparators[playerId][i]);
-                }
+            BitSet drones = moveableDrones();
+            for (int i = drones.nextSetBit(0); i >= 0; i = drones.nextSetBit(i+1)) {
+                int j = closestUncontrolledZone(myDrone(i));
+                targets[i] = j;
             }
+        }
+
+    }
+
+    static int distance2(Position a, Position b) {
+        int deltaX = a.x - b.x;
+        int deltaY = a.y - b.y;
+        return deltaX * deltaX + deltaY * deltaY;
+    }
+
+    static Position nextPosition() {
+        Position position = new Position();
+        position.x = SCANNER.nextInt();
+        position.y = SCANNER.nextInt();
+        return position;
+    }
+
+    static Drone nextDrone() {
+        Drone drone = new Drone();
+        drone.position = nextPosition();
+        return drone;
+    }
+
+    static Drone[] nextDrones() {
+        Drone[] drones = new Drone[D];
+        for(int i=0; i<D; ++i) {
+            drones[i] = nextDrone();
+        }
+        return drones;
+    }
+
+    static void initializeZones() {
+        zones = new Zone[Z];
+        for(int i=0; i<Z; ++i) {
+            Zone zone = new Zone();
+            zone.position = nextPosition();
+            zone.controller = -1;
+            zones[i] = zone;
         }
     }
 
-    static MyThread myThread;
-
-    static final int RADIUS = 100*100;
-    static Scanner scanner = new Scanner(System.in);
-    static int numberOfPlayers;
-    static int playerId;
-    static int numberOfDrones;
-    static int numberOfZones;
-    static Position[] zonePositions;
-    static int[] zoneControllers;
-    static Position[][] dronePositions;
-    static int[] droneZoneTargets;
-    static int[][] dronesInZone;
-    static int[][][] droneZoneDistances;
-    static Integer[][][] droneSortedZones;
-    static ZoneComparator[][] zoneComparators;
-
-    static int distance2(Position a, Position b) {
-        int delta_x = a.x - b.x;
-        int delta_y = a.y - b.y;
-        return delta_x*delta_x + delta_y*delta_y;
+    static void initializePlayers() {
+        players = new AiPlayer[P];
+        for(int i=0; i<P; ++i) {
+            AiPlayer player = new AiPlayer();
+            player.id = i;
+            players[i] = player;
+        }
     }
 
     static void initialize() {
-        numberOfPlayers = scanner.nextInt();
-        playerId = scanner.nextInt();
-        numberOfDrones = scanner.nextInt();
-        numberOfZones = scanner.nextInt();
-        zonePositions = new Position[numberOfZones];
-        for(int i=0; i<numberOfZones; ++i) {
-            Position position = new Position();
-            position.x = scanner.nextInt();
-            position.y = scanner.nextInt();
-            zonePositions[i] = position;
-        }
-        zoneControllers = new int[numberOfZones];
-        dronePositions = new Position[numberOfPlayers][numberOfDrones];
-        for(int i=0; i<numberOfPlayers; ++i) {
-            for(int j=0; j<numberOfDrones; ++j) {
-                dronePositions[i][j] = new Position();
-            }
-        }
-        droneZoneTargets = new int[numberOfDrones];
-        dronesInZone = new int[numberOfZones][numberOfPlayers];
-        droneZoneDistances = new int[numberOfPlayers][numberOfDrones][numberOfZones];
-        zoneComparators = new ZoneComparator[numberOfPlayers][numberOfDrones];
-        for(int i=0; i<numberOfPlayers; ++i) {
-            for(int j=0; j<numberOfDrones; ++j) {
-                zoneComparators[i][j] = new ZoneComparator(i,j);
-            }
-        }
-        droneSortedZones = new Integer[numberOfPlayers][numberOfDrones][numberOfZones];
-        for(int i=0; i<numberOfPlayers; ++i) {
-            for(int j=0; j<numberOfDrones; ++j) {
-                for(int k=0; k<numberOfZones; ++k) {
-                    droneSortedZones[i][j][k] = k;
-                }
-            }
-        }
-        myThread = new MyThread();
-        myThread.start();
+        P = SCANNER.nextInt();
+        I = SCANNER.nextInt();
+        D = SCANNER.nextInt();
+        Z = SCANNER.nextInt();
+        initializeZones();
+        initializePlayers();
+
+        targets = new int[D];
     }
 
     static void update() {
-        for(int i=0; i<numberOfZones; ++i) {
-            zoneControllers[i] = scanner.nextInt();
+        for(int i=0; i<Z; ++i) {
+            zones[i].controller = SCANNER.nextInt();
         }
-        for(int i=0; i<numberOfPlayers; ++i) {
-            for(int j=0; j<numberOfDrones; ++j) {
-                dronePositions[i][j].x = scanner.nextInt();
-                dronePositions[i][j].y = scanner.nextInt();
-            }
-        }
-        for(int i=0; i<numberOfZones; ++i) {
-            Position zone = zonePositions[i];
-            for(int j=0; j<numberOfPlayers; ++j) {
-                int drones = 0;
-                for(int k=0; k<numberOfDrones; ++k) {
-                    Position drone = dronePositions[j][k];
-                    if(distance2(drone, zone)<=RADIUS) {
-                        ++drones;
-                    }
-                }
-                dronesInZone[i][j] = drones;
-            }
-        }
-        for(int i=0; i<numberOfPlayers; ++i) {
-            for(int j=0; j<numberOfDrones; ++j) {
-                for(int k=0; k<numberOfZones; ++k) {
-                    droneZoneDistances[i][j][k] = distance2(dronePositions[i][j], zonePositions[k]);
-                }
-            }
+        for(int i=0; i<P; ++i) {
+            players[i].drones = nextDrones();
         }
     }
 
+    static BitSet moveableDrones() {
+        BitSet drones = new BitSet(D);
+        drones.set(0, D);
+        for(int i=0; i<Z; ++i) {
+            Zone zone = zones[i];
+            if(zone.controller==I) {
+                BitSet myDrones = myDronesInZone(zone);
+                int ennemyDrones = maxEnnemyDronesInZone(zone);
+                for(int j=ennemyDrones; j<myDrones.cardinality(); ++j) {
+                    myDrones.clear(myDrones.nextSetBit(0));
+                }
+                drones.andNot(myDrones);
+            }
+        }
+        return drones;
+    }
+
+    static Drone ennemyDrone(int d, int p) {
+        return players[p].drones[d];
+    }
+
+    static Drone myDrone(int d) {
+        return players[I].drones[d];
+    }
+
+    static int closestUncontrolledZone(Drone drone) {
+        int ret = 0;
+        int min = Integer.MAX_VALUE;
+        for(int i=0; i<Z; ++i) {
+            Zone zone = zones[i];
+            if(zone.controller!=I) {
+                int dist = distance2(zone.position, drone.position);
+                if(dist<min) {
+                    ret = i;
+                    min = dist;
+                }
+            }
+        }
+        return ret;
+    }
+
+    static BitSet myDronesInZone(Zone zone) {
+        BitSet ret = new BitSet(D);
+        for(int i=0; i<D; ++i) {
+            if(myDrone(i).isInZone(zone)) {
+                ret.set(i);
+            }
+        }
+        return ret;
+    }
+
+    static int maxEnnemyDronesInZone(Zone zone) {
+        int max = Integer.MIN_VALUE;
+        for(int i=0; i<P; ++i) {
+            if(i!=I) {
+                int ennemies = ennemyDronesInZone(zone, i);
+                if(ennemies>max) {
+                    max = ennemies;
+                }
+            }
+        }
+        return max;
+    }
+
+    static int ennemyDronesInZone(Zone zone, int player) {
+        int ret = 0;
+        for(int i=0; i<D; ++i) {
+            if(ennemyDrone(i, player).isInZone(zone)) {
+                ++ret;
+            }
+        }
+        return ret;
+    }
 
     static void process() throws Exception {
-        myThread.join(90);
-        for(int i=0; i<numberOfDrones; ++i) {
-            droneZoneTargets[i] = droneSortedZones[playerId][i][0];
-        }
+        strategy = new Strategy();
+        strategy.start();
+        strategy.join(90);
     }
 
     public static void main(String args[]) throws Exception {
@@ -197,11 +208,12 @@ class Player {
             process();
 
             // Write action to standard output
-            for(int target : droneZoneTargets) {
-                Position zone = zonePositions[target];
-                System.out.print(zone.x);
+            for(int target : targets) {
+                Zone zone = zones[target];
+                Position position = zone.position;
+                System.out.print(position.x);
                 System.out.print(" ");
-                System.out.println(zone.y);
+                System.out.println(position.y);
             }
         }
     }
