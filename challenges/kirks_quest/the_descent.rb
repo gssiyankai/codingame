@@ -10,9 +10,7 @@ loop do
                 }
 
     # Compute logic here
-    hm = ms.max_by { |i, h| 
-                h
-            }
+    hm = ms.max_by(&:last)
     action = "HOLD"
     if hm[0]==s[0]
         action = "FIRE"
