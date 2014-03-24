@@ -82,8 +82,7 @@ class A_star
 
   def self.find_position map, tile
     map.each_with_index.map { |row, i| [i, row.index(tile)] }
-    .select { |x, y| not y.nil? }
-    .flatten
+                       .find { |_, y| not y.nil? }
   end
 
   def self.heuristic_cost p1, p2
