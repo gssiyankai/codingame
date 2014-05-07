@@ -1,27 +1,29 @@
 STDOUT.sync = true # DO NOT REMOVE
 
+MAX_DISTANCE = 10000
+
 def connected_node node, link
     if link[0]==node then link[1] else link[0] end
 end
 
 def distance_cache si, gateway, links, cache
-    if cache.include?(si)
-        100000
+    d = cache[si]
+    if links.include?([si, gateway]) or links.include?([gateway, si])
+        d + 1
     else
-        cache << si
-        if links.include?([si, gateway]) or links.include?([gateway, si])
-            1
-        else
-            next_sis = links.select { |link| link.include? si }
-                            .map { |link| connected_node si, link }
-            1 + next_sis.map { |next_si| distance_cache next_si, gateway, links, cache }
-                        .min
-        end
+        next_sis = links.select { |link| link.include? si }
+                        .map { |link| connected_node si, link }
+                        .select { |next_si| (cache[next_si]||MAX_DISTANCE) > (d + 1) }
+        next_sis.each { |next_si|
+            cache[next_si] = d + 1
+        }
+        next_sis.map { |next_si| distance_cache next_si, gateway, links, cache }
+                .min || MAX_DISTANCE
     end
 end
 
 def distance si, gateway, links
-    distance_cache si, gateway, links, []
+    distance_cache si, gateway, links, { si => 0 }
 end
 
 def gateway_links gateway, links
