@@ -1,3 +1,3 @@
+#include "message.hpp"
 
-unsigned int* decode(int size, unsigned int* message);
-
+Message decode(const Message& m);

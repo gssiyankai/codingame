@@ -1,13 +1,22 @@
 #include <iostream>
 #include <iomanip>
+#include "printer.hpp"
 
 using namespace std;
 
-void print(int size, unsigned int* message) {
-
-  for(int i = 0; i < size / 16; i++)
-    cout << hex << setfill('0') << setw(8) << message[i] << " ";
-
-  cout << endl;
+void print(const Message& m)
+{
+   for(unsigned int i = 0; i < m.size(); i += 32)
+   {
+      unsigned int fragment = 0;
+      for(unsigned int j = 0; j < 32; ++j)
+      {
+         if(m.get(i + j))
+         {
+	   fragment |= (1 << (31 - j));
+         }
+      }
+      cout << hex << setfill('0') << setw(8) << fragment << " ";
+   }
+   cout << endl;
 }
-

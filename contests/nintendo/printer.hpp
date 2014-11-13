@@ -1,3 +1,3 @@
+#include "message.hpp"
 
-void print(int size, unsigned int* message);
-
+void print(const Message& m);
