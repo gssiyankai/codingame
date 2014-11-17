@@ -1,11 +1,10 @@
 #include <iostream>
 #include "decoder.hpp"
 #include "encoder.hpp"
-#include "printer.hpp"
 #include "message.hpp"
 
 using namespace std;
-
+/*
 int main()
 {
    int size;
@@ -25,8 +24,6 @@ int main()
       }
    }
 
-   print(m);
-
    print(m.reverse());
    //print(m.submsg(16, 32));
 
@@ -38,3 +35,4 @@ int main()
 
    return 0;
 }
+*/

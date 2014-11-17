@@ -1,11 +1,14 @@
 #ifndef MESSAGE
 #define MESSAGE
 
+#include <string>
 #include <vector>
 
 class Message
 {
    public:
+      static Message parse(const std::string&);
+
       Message(unsigned int size);
       unsigned int size() const;
       Message reverse() const;
@@ -16,6 +19,7 @@ class Message
       bool get(unsigned int pos) const;
       void set(unsigned int pos);
       void clear(unsigned int pos);
+      std::string str() const;
 
    private:
       unsigned int size_;
