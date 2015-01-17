@@ -1,8 +1,21 @@
 #include <gtest/gtest.h>
 #include "message.hpp"
 #include "encoder.hpp"
+#include "utils.hpp"
 
 using namespace std;
+
+TEST(UtilsTest, ReverseBits)
+{
+    ASSERT_EQ(1<<31, Utils::reverse_bits(1));
+    ASSERT_EQ(2830359264, Utils::reverse_bits(123456789));
+}
+
+TEST(UtilsTest, CountBits)
+{
+    ASSERT_EQ(3, Utils::count_bits(7));
+    ASSERT_EQ(5, Utils::count_bits(91));
+}
 
 TEST(MessageTest, Size)
 {
