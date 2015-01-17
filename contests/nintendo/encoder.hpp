@@ -1,3 +1,3 @@
 #include "message.hpp"
 
-Message encode(const Message& m);
+Message encode(const Message &m);
