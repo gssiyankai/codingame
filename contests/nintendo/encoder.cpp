@@ -24,7 +24,7 @@ Message encode(const Message &m)
             Message sub_e = sub_m1 & sub_m2;
             if (sub_e.cardinality() % 2 == 1)
             {
-                e.set(size / 2 + i);
+                e.set(size - i);
             }
         }
     }
