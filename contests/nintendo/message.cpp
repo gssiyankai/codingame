@@ -90,31 +90,53 @@ Message Message::reverse() const
 Message Message::submsg(unsigned int pos, unsigned int len) const
 {
     Message s(len);
+
+    const unsigned int right_offset = pos % 32;
+    const unsigned int left_offset = 32 - pos % 32;
+    const unsigned int final_offset = len % 32;
+    unsigned int right_mask = 0;
+    unsigned int left_mask = 0;
+    unsigned int final_mask = 0;
+    for (unsigned int i = 0; i < left_offset; ++i)
+    {
+        right_mask |= 1 << i;
+    }
+    for (unsigned int i = 0; i < right_offset; ++i)
+    {
+        left_mask |= (1 << (31 - i));
+    }
+    for (unsigned int i = 0; i < final_offset; ++i)
+    {
+        final_mask |= (1 << (31 - i));
+    }
+
     unsigned int index = 0;
-    unsigned int right_mask = 0xffffffff;
-    unsigned int left_mask = 0xffffffff;
-    for (unsigned int i = 0; i < (pos % 32); ++i)
+    while (true)
     {
-        right_mask |= (1 << (31 - i));
-    }
-    for (unsigned int i = 0; i < (pos % 32); ++i)
-    {
-        left_mask &= ~(1 << i);
-    }
-    for (unsigned int i = pos; i <= std::min(size_, pos + len + ((pos % 32 < len % 32) ? 32 : 0)); i += 32)
-    {
-        unsigned int fragment = 0;
-        if (index > 0)
+        if (index < len)
         {
-            fragment = (fragments_[i / 32] >> (31 - (pos % 32))) & right_mask;
-            s.fragments_[index - 1] |= fragment;
+            unsigned int fragment = (fragments_[(pos + index) / 32] & right_mask) << right_offset;
+            s.fragments_[index / 32] |= fragment;
+            index += left_offset;
         }
-        fragment = (fragments_[i / 32] << (pos % 32)) & left_mask;
-        std::cout << std::hex << std::setfill('0') << std::setw(8) << left_mask << std::endl;
-        std::cout << std::hex << std::setfill('0') << std::setw(8) << fragment << std::endl;
-        s.fragments_[index] |= fragment;
-        ++index;
+        else
+        {
+            break;
+        }
+        if (index < len)
+        {
+            unsigned int fragment = fragments_[(pos + index) / 32] & left_mask;
+            s.fragments_[index / 32] |= fragment;
+
+            index += right_offset;
+        }
+        else
+        {
+            break;
+        }
     }
+    s.fragments_[index / 32] &= final_mask;
+
     return s;
 }
 
