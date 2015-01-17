@@ -18,3 +18,13 @@ unsigned int Utils::count_bits(register unsigned int x)
     }
     return c;
 }
+
+unsigned int Utils::mask(register unsigned int len)
+{
+    unsigned int mask = 0;
+    for (unsigned int i = 0; i < len; ++i)
+    {
+        mask |= (1 << (31 - i));
+    }
+    return mask;
+}

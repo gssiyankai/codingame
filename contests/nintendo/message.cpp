@@ -91,33 +91,21 @@ Message Message::submsg(unsigned int pos, unsigned int len) const
 {
     Message s(len);
 
-    const unsigned int right_offset = pos % 32;
-    const unsigned int left_offset = 32 - pos % 32;
-    const unsigned int final_offset = len % 32;
-    unsigned int right_mask = 0;
-    unsigned int left_mask = 0;
-    unsigned int final_mask = 0;
-    for (unsigned int i = 0; i < left_offset; ++i)
-    {
-        right_mask |= 1 << i;
-    }
-    for (unsigned int i = 0; i < right_offset; ++i)
-    {
-        left_mask |= (1 << (31 - i));
-    }
-    for (unsigned int i = 0; i < final_offset; ++i)
-    {
-        final_mask |= (1 << (31 - i));
-    }
+    const unsigned int left_mask_len = pos % 32;
+    const unsigned int right_mask_len = 32 - left_mask_len;
+    const unsigned int final_mask_len = len % 32;
+    const unsigned int left_mask = Utils::mask(left_mask_len);
+    const unsigned int right_mask = ~left_mask;
+    const unsigned int final_mask = Utils::mask(final_mask_len);
 
     unsigned int index = 0;
     while (true)
     {
         if (index < len)
         {
-            unsigned int fragment = (fragments_[(pos + index) / 32] & right_mask) << right_offset;
+            const unsigned int fragment = (fragments_[(pos + index) / 32] & right_mask) << left_mask_len;
             s.fragments_[index / 32] |= fragment;
-            index += left_offset;
+            index += right_mask_len;
         }
         else
         {
@@ -125,10 +113,10 @@ Message Message::submsg(unsigned int pos, unsigned int len) const
         }
         if (index < len)
         {
-            unsigned int fragment = fragments_[(pos + index) / 32] & left_mask;
+            const unsigned int fragment = fragments_[(pos + index) / 32] & left_mask;
             s.fragments_[index / 32] |= fragment;
 
-            index += right_offset;
+            index += left_mask_len;
         }
         else
         {

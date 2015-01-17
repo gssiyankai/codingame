@@ -17,6 +17,11 @@ TEST(UtilsTest, CountBits)
     ASSERT_EQ(5, Utils::count_bits(91));
 }
 
+TEST(UtilsTest, Mask)
+{
+    ASSERT_EQ(0xF0000000, Utils::mask(4));
+}
+
 TEST(MessageTest, Size)
 {
     ASSERT_EQ(5, Message(5).size());

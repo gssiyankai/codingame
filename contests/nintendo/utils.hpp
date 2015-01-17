@@ -7,6 +7,8 @@ public:
     static unsigned int reverse_bits(register unsigned int);
 
     static unsigned int count_bits(register unsigned int);
+
+    static unsigned int mask(register unsigned int);
 };
 
 #endif
