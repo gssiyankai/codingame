@@ -61,29 +61,39 @@ unsigned int Message::size() const
 Message Message::reverse() const
 {
     Message r(size_);
+
+    const unsigned int left_mask_len = size_ % 32;
+    const unsigned int right_mask_len = 32 - left_mask_len;
+    const unsigned int left_mask = Utils::mask(left_mask_len);
+    const unsigned int right_mask = ~left_mask;
+
+    const unsigned int final_pos = size_ - 1;
     unsigned int index = 0;
-    unsigned int right_mask = 0;
-    unsigned int left_mask = 0xffffffff;
-    for (unsigned int i = 0; i < (size_ % 32); ++i)
+    while (true)
     {
-        right_mask |= (1 << (31 - i));
-    }
-    for (unsigned int i = 0; i < (32 - (size_ % 32)) % 32; ++i)
-    {
-        left_mask &= ~(1 << i);
-    }
-    for (auto i = fragments_.rbegin(); i != fragments_.rend(); ++i)
-    {
-        unsigned int fragment;
-        if (index > 0)
+        if (index < size_)
         {
-            fragment = (Utils::reverse_bits(*i) >> (size_ % 32)) & right_mask;
-            r.fragments_[index - 1] |= fragment;
+            const unsigned int fragment = (fragments_[(final_pos - index) / 32] & left_mask);
+            r.fragments_[index / 32] |= Utils::reverse_bits(fragment) << right_mask_len;
+            index += left_mask_len;
         }
-        fragment = Utils::reverse_bits(*i >> (32 - (size_ % 32))) & left_mask;
-        r.fragments_[index] |= fragment;
-        ++index;
+        else
+        {
+            break;
+        }
+        if (index < size_)
+        {
+            const unsigned int fragment = fragments_[(final_pos - index) / 32] & right_mask;
+            r.fragments_[index / 32] |= Utils::reverse_bits(fragment) >> left_mask;
+
+            index += right_mask_len;
+        }
+        else
+        {
+            break;
+        }
     }
+
     return r;
 }
 

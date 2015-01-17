@@ -100,6 +100,13 @@ TEST(MessageTest, BitwiseAnd)
 TEST(MessageTest, Reverse)
 {
     {
+        Message m(32);
+        m.set(1);
+        Message expected(32);
+        expected.set(30);
+        ASSERT_EQ(expected, m.reverse());
+    }
+    {
         Message m(64);
         m.set(1);
         m.set(23);
